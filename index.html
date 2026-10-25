@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0E4F5C">
+<meta name="description" content="RepairPassport: a repair card with intake photos, condition check, agreed price and approvals for small phone repair shops.">
+<title>RepairPassport</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E4F5C'/%3E%3Crect x='18' y='10' width='28' height='44' rx='5' fill='none' stroke='white' stroke-width='4'/%3E%3Cpath d='M25 33l5 5 10-11' fill='none' stroke='%23F2B33D' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hurricane&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#15232A; --ink2:#4A5A61; --muted:#7A888E; --line:#DDE3E4; --bg:#F3F5F4; --card:#FFFFFF;
+  --brand:#0E4F5C; --brand2:#127082; --brandSoft:#E3EFF1;
+  --ok:#23784A; --okSoft:#E3F2E8; --bad:#B3261E; --badSoft:#FBE7E5; --nt:#8A9599; --ntSoft:#EEF1F2;
+  --warn:#B4610E; --warnSoft:#FDF0DF; --gold:#F2B33D;
+  --r:14px; --shadow:0 1px 2px rgba(16,40,48,.06),0 4px 14px rgba(16,40,48,.06);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--brand2)}
+.wrap{max-width:540px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+header.top{position:sticky;top:0;z-index:5;background:var(--brand);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:10px}
+header.top h1{font-size:18px;margin:0;flex:1;font-weight:700;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.top .sub{display:block;font-size:12px;font-weight:500;opacity:.8}
+.hbtn{background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:10px;padding:8px 11px;font-size:14px;font-weight:600;cursor:pointer}
+.hbtn:active{background:rgba(255,255,255,.26)}
+.timer{font-variant-numeric:tabular-nums;background:var(--gold);color:#3A2A00;border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700}
+main{flex:1;padding:14px 14px 28px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;margin:0 0 12px}
+.card h2{font-size:15px;margin:0 0 10px;color:var(--ink2);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.hint{font-size:13px;color:var(--muted);margin:-4px 0 10px}
+label.f{display:block;font-size:13px;font-weight:600;color:var(--ink2);margin:10px 0 4px}
+label.f small{font-weight:400;color:var(--muted)}
+input.in,textarea.in,select.in{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;background:#fff;outline:none;font-size:16px}
+input.in:focus,textarea.in:focus,select.in:focus{border-color:var(--brand2)}
+input.in::placeholder{text-transform:none}
+textarea.in{min-height:64px;resize:vertical}
+.row{display:flex;gap:8px;align-items:center}
+.row>*{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;font-size:14px;cursor:pointer;user-select:none}
+.chip.on{background:var(--brandSoft);border-color:var(--brand2);color:var(--brand);font-weight:600}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:12px;padding:14px 16px;font-size:16px;font-weight:700;cursor:pointer;background:var(--brand);color:#fff;text-decoration:none}
+.btn:active{filter:brightness(.92)}
+.btn.sec{background:var(--brandSoft);color:var(--brand)}
+.btn.wa{background:#1F9D55}
+.btn.warn{background:var(--warn)}
+.btn.ghost{background:transparent;color:var(--brand);border:1.5px solid var(--line)}
+.btn.danger{background:transparent;color:var(--bad);border:1.5px solid #F0C9C5}
+.btn.sm{padding:9px 12px;font-size:14px;border-radius:10px;width:auto}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stack>*+*{margin-top:8px}
+.sticky-save{position:sticky;bottom:0;padding:10px 0 calc(10px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 70%,rgba(243,245,244,0))}
+/* list */
+.newbig{font-size:18px;padding:18px;border-radius:16px;margin-bottom:14px;box-shadow:0 6px 18px rgba(14,79,92,.25)}
+.item{display:flex;gap:12px;align-items:center;background:#fff;border-radius:var(--r);box-shadow:var(--shadow);padding:12px;margin-bottom:10px;cursor:pointer;text-decoration:none;color:inherit}
+.thumb{width:52px;height:52px;border-radius:10px;background:var(--brandSoft) center/cover no-repeat;flex:none;display:flex;align-items:center;justify-content:center;color:var(--brand);font-weight:800;font-size:12px}
+.item .t{font-weight:700}
+.item .m{font-size:13px;color:var(--muted)}
+.badge{display:inline-block;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:700;white-space:nowrap}
+.b-st{background:var(--brandSoft);color:var(--brand)}
+.b-pend{background:var(--warnSoft);color:var(--warn)}
+.b-ok{background:var(--okSoft);color:var(--ok)}
+.b-bad{background:var(--badSoft);color:var(--bad)}
+.b-demo{background:#EDE7F6;color:#5E35B1}
+.stats{display:flex;gap:8px;margin:0 0 12px}
+.stats div{flex:1;background:#fff;border-radius:12px;padding:10px;box-shadow:var(--shadow);text-align:center}
+.stats b{display:block;font-size:20px}
+.stats span{font-size:12px;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:28px 18px}
+/* photos */
+.photos{display:flex;gap:8px;flex-wrap:wrap}
+.ph{position:relative;width:88px;height:88px;border-radius:12px;overflow:hidden;background:#000}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph button{position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:15px;line-height:1;cursor:pointer}
+.phadd{width:88px;height:88px;border-radius:12px;border:2px dashed var(--brand2);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--brand);font-size:12px;font-weight:700;cursor:pointer;text-align:center;padding:6px;background:var(--brandSoft)}
+.phadd span{font-size:26px;line-height:1}
+/* checks */
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ck{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:10px;padding:8px 9px;background:#fff;cursor:pointer;user-select:none;font-size:14px;text-align:left}
+.ck i{flex:none;width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800;font-size:14px;background:var(--ntSoft);color:var(--nt)}
+.ck.ok{border-color:#A9D3B8;background:var(--okSoft)} .ck.ok i{background:var(--ok);color:#fff}
+.ck.bad{border-color:#EDB6B1;background:var(--badSoft)} .ck.bad i{background:var(--bad);color:#fff}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--muted);margin:8px 0 0;flex-wrap:wrap}
+.legend b{display:inline-block;width:16px;height:16px;border-radius:5px;vertical-align:-3px;margin-right:4px}
+/* detail */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:15px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
+.sts{display:flex;flex-wrap:wrap;gap:6px}
+.sts .chip{font-size:13px}
+.pitem{border:1.5px solid var(--line);border-radius:12px;padding:10px;margin-top:8px}
+.pitem.pending{border-color:#F0CE9E;background:#FFFBF4}
+.pitem .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.pitem .desc{font-weight:700}
+.pitem .pr{font-weight:800;white-space:nowrap}
+.codebox{font-size:13px;color:var(--ink2);margin:6px 0;background:var(--ntSoft);border-radius:8px;padding:6px 8px}
+.codebox b{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:1px;color:var(--ink)}
+.total{display:flex;justify-content:space-between;font-weight:800;font-size:17px;border-top:1.5px solid var(--line);margin-top:10px;padding-top:10px}
+.loglist{font-size:13px;color:var(--ink2);margin:0;padding-left:18px}
+.loglist li{margin:2px 0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.sep{height:1px;background:var(--line);margin:12px 0}
+/* customer */
+.chead{background:linear-gradient(160deg,#0E4F5C,#127082);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 18px 22px}
+.chead .shop{font-size:14px;opacity:.85;font-weight:600}
+.chead .ttl{font-size:26px;font-weight:800;margin:2px 0}
+.chead .meta{font-size:15px;opacity:.9}
+.langs{display:flex;gap:6px;justify-content:flex-end;margin-bottom:6px}
+.langs button{background:rgba(255,255,255,.15);border:0;color:#fff;border-radius:8px;padding:4px 9px;font-size:13px;font-weight:700;cursor:pointer}
+.langs button.on{background:#fff;color:var(--brand)}
+.big{font-size:18px}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{display:flex;gap:12px;align-items:flex-start;padding:7px 0;color:var(--muted)}
+.steps li .dot{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;background:#fff}
+.steps li.done{color:var(--ink)} .steps li.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+.steps li.now{color:var(--ink);font-weight:800} .steps li.now .dot{background:var(--gold);border-color:var(--gold);color:#3A2A00}
+.steps .when{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+.approve{border:2px solid var(--gold);background:#FFFBF1}
+.approve .what{font-size:19px;font-weight:800;margin:4px 0}
+.approve .money{font-size:24px;font-weight:900}
+.clist{list-style:none;margin:0;padding:0;font-size:16px}
+.clist li{display:flex;gap:10px;align-items:center;padding:5px 0;border-bottom:1px solid #EEF1F1}
+.clist li:last-child{border-bottom:0}
+.clist i{flex:none;width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:800;font-size:14px}
+.i-ok{background:var(--ok);color:#fff} .i-bad{background:var(--bad);color:#fff} .i-nt{background:var(--ntSoft);color:var(--nt)}
+.note{font-size:14px;color:var(--ink2);background:var(--brandSoft);border-radius:12px;padding:12px}
+.cphotos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cphotos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:zoom-in;background:#000}
+/* overlays */
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#15232A;color:#fff;padding:11px 16px;border-radius:12px;font-size:15px;font-weight:600;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90vw;text-align:center}
+.sheet{position:fixed;inset:0;background:rgba(10,20,24,.45);display:flex;align-items:flex-end;justify-content:center;z-index:40}
+.sheet .panel{background:#fff;width:100%;max-width:540px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:60;display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.viewer img{max-width:96vw;max-height:90vh;border-radius:8px}
+/* signature (owner's standing footer) */
+footer.sig{text-align:center;padding:22px 16px calc(26px + env(safe-area-inset-bottom));color:var(--muted);font-size:12px;line-height:1.5}
+footer.sig .made{letter-spacing:.3px}
+footer.sig .hand{display:block;font-family:"Hurricane",cursive;font-size:38px;line-height:1.1;color:var(--ink);margin:2px 0}
+footer.sig a{color:var(--muted)}
+/* print */
+#print{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff}
+  .wrap,.toast,.sheet,.viewer{display:none!important}
+  #print{display:block;color:#000;font:15pt/1.4 Arial,Helvetica,sans-serif}
+  #print h1{font-size:24pt;margin:0}
+  #print .ph{width:auto;height:auto;background:none;border-radius:0}
+  #print table{width:100%;border-collapse:collapse;margin:6pt 0}
+  #print td{border:1px solid #888;padding:4pt 6pt;vertical-align:top}
+  #print .two{display:flex;gap:14pt;align-items:flex-start}
+  #print .pphotos img{width:42mm;height:42mm;object-fit:cover;border:1px solid #888;margin-right:3mm}
+  #print .sign{display:flex;gap:20mm;margin-top:16pt}
+  #print .sign div{flex:1;border-top:1px solid #000;padding-top:3pt;font-size:12pt}
+  #print .qr svg{width:44mm;height:44mm}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="print"></div>
+<input type="file" id="cam" accept="image/*" capture="environment" hidden>
+<script>
+/* qrcode-generator 1.4.4, (c) 2009 Kazuhiko Arase, MIT license, https://github.com/kazuhikoarase/qrcode-generator */
+// Copyright (c) 2009 Kazuhiko Arase
+// Licensed under the MIT license:
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,(function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1}))},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(t,r){var e=n("友");if(2!=e.length||38726!=(e[0]<<8|e[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}((function(){return qrcode}));
+</script>
+<script>
+"use strict";
+/* ===================== i18n ===================== */
+const T={
+ru:{tagline:"Прозрачный ремонт",newCard:"Новая карта",cards:"Карты ремонта",noCards:"Пока нет карт. Нажмите «Новая карта», когда клиент сдаёт телефон.",settings:"Настройки",setupTitle:"Настройка мастерской",setupHint:"Займёт 20 секунд. Номер нужен, чтобы клиент мог ответить вам в WhatsApp.",shopName:"Название мастерской",shopPhone:"WhatsApp мастерской",language:"Язык",start:"Начать",customer:"Клиент",custName:"Имя клиента",custPhone:"Телефон клиента (WhatsApp)",optional:"необязательно",device:"Устройство",model:"Модель",modelPh:"например, iPhone 11",fault:"Что случилось",faultPh:"Со слов клиента",photos:"Фото при приёме",addPhoto:"Фото",photoHint:"Снимите экран и корпус. До 3 фото.",condition:"Проверка при приёме",condHint:"Нажмите: работает → не работает → не проверено.",works:"работает",notWorking:"не работает",notTested:"не проверено",deadPhone:"Не включается — всё «не проверено»",damage:"Видимые повреждения",damageNote:"Другое (по желанию)",price:"Цена",prelim:"Предварительная цена, ₸",prelimNote:"Может измениться после диагностики",diagFee:"Диагностика при отказе от ремонта, ₸",saveCard:"Сохранить карту",needModel:"Укажите модель",saved:"Карта сохранена",madeIn:"создана за {s}",send:"Отправить клиенту",shareBtn:"Поделиться…",copyLink:"Копировать ссылку",shortLink:"Ссылка без фото",print:"Печать",copied:"Ссылка скопирована",status:"Статус",notify:"Сообщить клиенту о статусе",prices:"Цены и согласия",addItem:"Новая цена или доп. работа",kindRepair:"Цена после диагностики",kindExtra:"Дополнительная работа",itemDesc:"Что делаем",itemDescPh:"например, замена экрана (копия)",itemPrice:"Цена, ₸",askApprove:"Запросить согласие клиента",pending:"ждёт ответа",approved:"согласовано",declined:"отказ",codes:"Код «да»: {a} · код «нет»: {d}",enterCode:"Код из сообщения клиента",custAgreed:"Клиент согласился",inPerson:"Согласие лично",custDeclined:"Клиент отказался",codeOk:"Код верный — согласие записано",codeBad:"Код не совпадает. Проверьте сообщение клиента.",viaCode:"по коду",viaPerson:"лично",viaManual:"без кода",total:"Итого согласовано",log:"История",deleteCard:"Удалить карту",confirmDelete:"Нажмите ещё раз, чтобы удалить",back:"Назад",testMode:"Режим теста (метка тестера)",testHint:"Например A1 или B3. Пусто — режим выключен.",helpQ:"Тестеру нужна была помощь?",yes:"Да",no:"Нет",exportData:"Экспорт данных теста (CSV)",demo:"Добавить демо-карту",wipe:"Удалить все данные",wipeConfirm:"Нажмите ещё раз — данные удалятся",privacy:"Данные хранятся только на этом телефоне и в ссылках, которые вы отправляете. Сервера нет.",storageFull:"Память браузера заполнена. Экспортируйте данные и удалите старые карты.",cardsToday:"карт сегодня",avgTime:"среднее время",pendingN:"ждут согласия",preview:"Открыть как клиент",reqSent:"Запрос готов. Отправьте его клиенту.",prelimShort:"Предварительно",noPhotos:"Без фото",photoErr:"Не удалось обработать фото",linkBuilding:"Готовим ссылку…",saveFirst:"Добавьте модель",apprBy:"{s} {when}",
+cTitle:"Карта ремонта",cFrom:"Мастерская: {shop}",cReceived:"Принят {date}",cApproveTitle:"Нужно ваше согласие",cApproveText:"Мастер предлагает:",cNewTotal:"Итого будет: {sum}",cAgree:"Согласен",cDisagree:"Не согласен",cSent:"Откроется WhatsApp с готовым сообщением — отправьте его мастеру.",cYourCode:"Ваш код: {c}",cCondition:"Состояние при приёме",cDamage:"Видимые повреждения",cNoDamage:"Не отмечены",cPrelim:"Предварительная цена",cAgreed:"Согласовано",cKeep:"Сохраните эту ссылку: это копия вашей карты ремонта. Она не хранится на сервере.",cAsOf:"Карта на {date}. Новый статус мастер пришлёт новой ссылкой.",cBroken:"Ссылка повреждена. Попросите мастера отправить её ещё раз.",cNoPhotosHere:"Фото есть у мастера и в первой ссылке.",cProblem:"Что случилось",cDevice:"Устройство",cDecided:"Ответ записан",
+msgCard:"Здравствуйте! {shop}: карта ремонта {id} ({model}). Фото и проверка при приёме, цена и статус:\n{link}",msgStatus:"{shop}, {id} ({model}): статус — {status}.\n{link}",msgApprove:"{shop}, {id}: нужно ваше согласие — {desc}, {price}. Откройте ссылку:\n{link}",replyAgree:"{id}: Согласен(на) — {desc}, {price}. Код: {code}",replyDecline:"{id}: Не согласен(на) — {desc}, {price}. Код: {code}",
+pSignC:"Подпись клиента",pSignT:"Подпись мастера",pScan:"Сканируйте, чтобы открыть карту на телефоне",pAgree:"Клиент видел состояние устройства и предварительную цену.",
+st:{accepted:"Принят",diagnosis:"Диагностика",waiting_part:"Ждём деталь",repair:"В ремонте",ready:"Готов",picked:"Выдан"},
+ck:{power:"Включается",screen:"Изображение",touch:"Сенсор",camb:"Основная камера",camf:"Фронтальная камера",speaker:"Динамик",mic:"Микрофон",charge:"Зарядка",buttons:"Кнопки",bio:"Face ID / отпечаток",wifi:"Wi-Fi / Bluetooth",sim:"Связь / SIM"},
+dm:{scr:"Царапины на экране",crk:"Трещина экрана",back:"Трещина задней крышки",dent:"Вмятины на корпусе",bent:"Погнут",water:"Следы влаги"},
+fl:{screen:"Разбит экран",charge:"Не заряжается",battery:"Быстро садится",sound:"Нет звука",camera:"Камера",dead:"Не включается",water:"Попала вода"}},
+kk:{tagline:"Ашық жөндеу",newCard:"Жаңа карта",cards:"Жөндеу карталары",noCards:"Әзірге карта жоқ. Клиент телефонды тапсырғанда «Жаңа карта» басыңыз.",settings:"Баптаулар",setupTitle:"Шеберхананы баптау",setupHint:"20 секунд алады. Нөмір клиент сізге WhatsApp-та жауап беруі үшін керек.",shopName:"Шеберхана атауы",shopPhone:"Шеберхананың WhatsApp нөмірі",language:"Тіл",start:"Бастау",customer:"Клиент",custName:"Клиенттің аты",custPhone:"Клиенттің телефоны (WhatsApp)",optional:"міндетті емес",device:"Құрылғы",model:"Моделі",modelPh:"мысалы, iPhone 11",fault:"Не болды",faultPh:"Клиенттің сөзімен",photos:"Қабылдау кезіндегі фото",addPhoto:"Фото",photoHint:"Экран мен корпусты түсіріңіз. 3 фотоға дейін.",condition:"Қабылдау кезіндегі тексеру",condHint:"Басыңыз: жұмыс істейді → істемейді → тексерілмеді.",works:"жұмыс істейді",notWorking:"жұмыс істемейді",notTested:"тексерілмеді",deadPhone:"Қосылмайды — бәрі «тексерілмеді»",damage:"Көрінетін зақымдар",damageNote:"Басқа (қаласаңыз)",price:"Баға",prelim:"Алдын ала баға, ₸",prelimNote:"Диагностикадан кейін өзгеруі мүмкін",diagFee:"Жөндеуден бас тартса, диагностика, ₸",saveCard:"Картаны сақтау",needModel:"Модельді көрсетіңіз",saved:"Карта сақталды",madeIn:"{s} ішінде жасалды",send:"Клиентке жіберу",shareBtn:"Бөлісу…",copyLink:"Сілтемені көшіру",shortLink:"Фотосыз сілтеме",print:"Басып шығару",copied:"Сілтеме көшірілді",status:"Күйі",notify:"Клиентке күйін хабарлау",prices:"Бағалар мен келісімдер",addItem:"Жаңа баға немесе қосымша жұмыс",kindRepair:"Диагностикадан кейінгі баға",kindExtra:"Қосымша жұмыс",itemDesc:"Не істейміз",itemDescPh:"мысалы, экранды ауыстыру (көшірме)",itemPrice:"Бағасы, ₸",askApprove:"Клиенттен келісім сұрау",pending:"жауап күтуде",approved:"келісілді",declined:"бас тартты",codes:"«Иә» коды: {a} · «жоқ» коды: {d}",enterCode:"Клиент хабарындағы код",custAgreed:"Клиент келісті",inPerson:"Жеке келісім",custDeclined:"Клиент бас тартты",codeOk:"Код дұрыс — келісім жазылды",codeBad:"Код сәйкес емес. Клиент хабарын тексеріңіз.",viaCode:"код бойынша",viaPerson:"жеке",viaManual:"кодсыз",total:"Барлығы келісілді",log:"Тарих",deleteCard:"Картаны жою",confirmDelete:"Жою үшін тағы басыңыз",back:"Артқа",testMode:"Тест режимі (тестер белгісі)",testHint:"Мысалы A1 немесе B3. Бос болса — өшірулі.",helpQ:"Тестерге көмек керек болды ма?",yes:"Иә",no:"Жоқ",exportData:"Тест деректерін экспорттау (CSV)",demo:"Демо-карта қосу",wipe:"Барлық деректерді жою",wipeConfirm:"Тағы басыңыз — деректер жойылады",privacy:"Деректер тек осы телефонда және сіз жіберетін сілтемелерде сақталады. Сервер жоқ.",storageFull:"Браузер жады толды. Деректерді экспорттап, ескі карталарды жойыңыз.",cardsToday:"бүгінгі карта",avgTime:"орташа уақыт",pendingN:"келісім күтуде",preview:"Клиент ретінде ашу",reqSent:"Сұрау дайын. Оны клиентке жіберіңіз.",prelimShort:"Алдын ала",noPhotos:"Фотосыз",photoErr:"Фотоны өңдеу мүмкін болмады",linkBuilding:"Сілтеме дайындалуда…",saveFirst:"Модельді қосыңыз",apprBy:"{s} {when}",
+cTitle:"Жөндеу картасы",cFrom:"Шеберхана: {shop}",cReceived:"Қабылданды: {date}",cApproveTitle:"Сіздің келісіміңіз керек",cApproveText:"Шебер ұсынады:",cNewTotal:"Барлығы: {sum}",cAgree:"Келісемін",cDisagree:"Келіспеймін",cSent:"Дайын хабары бар WhatsApp ашылады — оны шеберге жіберіңіз.",cYourCode:"Сіздің кодыңыз: {c}",cCondition:"Қабылдау кезіндегі күйі",cDamage:"Көрінетін зақымдар",cNoDamage:"Белгіленбеген",cPrelim:"Алдын ала баға",cAgreed:"Келісілді",cKeep:"Бұл сілтемені сақтаңыз: бұл жөндеу картаңыздың көшірмесі. Ол серверде сақталмайды.",cAsOf:"Карта {date} кезіндегі күйде. Жаңа күйін шебер жаңа сілтемемен жібереді.",cBroken:"Сілтеме бүлінген. Шеберден оны қайта жіберуін сұраңыз.",cNoPhotosHere:"Фото шеберде және алғашқы сілтемеде бар.",cProblem:"Не болды",cDevice:"Құрылғы",cDecided:"Жауап жазылды",
+msgCard:"Сәлеметсіз бе! {shop}: {id} жөндеу картасы ({model}). Қабылдау кезіндегі фото, тексеру, баға және күйі:\n{link}",msgStatus:"{shop}, {id} ({model}): күйі — {status}.\n{link}",msgApprove:"{shop}, {id}: келісіміңіз керек — {desc}, {price}. Сілтемені ашыңыз:\n{link}",replyAgree:"{id}: Келісемін — {desc}, {price}. Код: {code}",replyDecline:"{id}: Келіспеймін — {desc}, {price}. Код: {code}",
+pSignC:"Клиенттің қолы",pSignT:"Шебердің қолы",pScan:"Картаны телефонда ашу үшін сканерлеңіз",pAgree:"Клиент құрылғының күйін және алдын ала бағаны көрді.",
+st:{accepted:"Қабылданды",diagnosis:"Диагностика",waiting_part:"Бөлшек күтілуде",repair:"Жөнделуде",ready:"Дайын",picked:"Берілді"},
+ck:{power:"Қосылады",screen:"Экран бейнесі",touch:"Сенсор",camb:"Негізгі камера",camf:"Алдыңғы камера",speaker:"Динамик",mic:"Микрофон",charge:"Зарядтау",buttons:"Түймелер",bio:"Face ID / саусақ ізі",wifi:"Wi-Fi / Bluetooth",sim:"Байланыс / SIM"},
+dm:{scr:"Экранда сызаттар",crk:"Экран жарылған",back:"Артқы қақпақ жарылған",dent:"Корпуста майысқан жер",bent:"Майысқан",water:"Ылғал іздері"},
+fl:{screen:"Экран сынған",charge:"Зарядталмайды",battery:"Тез отырады",sound:"Дыбыс жоқ",camera:"Камера",dead:"Қосылмайды",water:"Су кірген"}},
+en:{tagline:"Transparent repair",newCard:"New card",cards:"Repair cards",noCards:"No cards yet. Tap “New card” when a customer hands over a phone.",settings:"Settings",setupTitle:"Set up your shop",setupHint:"Takes 20 seconds. The number lets customers reply to you on WhatsApp.",shopName:"Shop name",shopPhone:"Shop WhatsApp number",language:"Language",start:"Start",customer:"Customer",custName:"Customer name",custPhone:"Customer phone (WhatsApp)",optional:"optional",device:"Device",model:"Model",modelPh:"e.g. iPhone 11",fault:"Problem",faultPh:"In the customer's words",photos:"Intake photos",addPhoto:"Photo",photoHint:"Shoot the screen and the body. Up to 3 photos.",condition:"Check at intake",condHint:"Tap: works → not working → not tested.",works:"works",notWorking:"not working",notTested:"not tested",deadPhone:"Won't turn on: mark all “not tested”",damage:"Visible damage",damageNote:"Other (optional)",price:"Price",prelim:"Preliminary price, ₸",prelimNote:"May change after diagnosis",diagFee:"Diagnosis fee if repair is declined, ₸",saveCard:"Save card",needModel:"Enter the model",saved:"Card saved",madeIn:"made in {s}",send:"Send to customer",shareBtn:"Share…",copyLink:"Copy link",shortLink:"Link without photos",print:"Print",copied:"Link copied",status:"Status",notify:"Send status to customer",prices:"Prices and approvals",addItem:"New price or extra work",kindRepair:"Price after diagnosis",kindExtra:"Extra work",itemDesc:"What we will do",itemDescPh:"e.g. screen replacement (copy)",itemPrice:"Price, ₸",askApprove:"Ask customer to approve",pending:"waiting for reply",approved:"approved",declined:"declined",codes:"“Yes” code: {a} · “No” code: {d}",enterCode:"Code from the customer's message",custAgreed:"Customer agreed",inPerson:"Agreed in person",custDeclined:"Customer declined",codeOk:"Code matches: approval recorded",codeBad:"Code does not match. Check the customer's message.",viaCode:"by code",viaPerson:"in person",viaManual:"without code",total:"Agreed total",log:"History",deleteCard:"Delete card",confirmDelete:"Tap again to delete",back:"Back",testMode:"Test session mode (tester label)",testHint:"For example A1 or B3. Leave empty to turn off.",helpQ:"Did the tester need help?",yes:"Yes",no:"No",exportData:"Export test data (CSV)",demo:"Add demo card",wipe:"Delete all data",wipeConfirm:"Tap again: all data will be deleted",privacy:"Data stays on this phone and in the links you send. There is no server.",storageFull:"Browser storage is full. Export data and delete old cards.",cardsToday:"cards today",avgTime:"average time",pendingN:"awaiting approval",preview:"Open as customer",reqSent:"Request ready. Send it to the customer.",prelimShort:"Preliminary",noPhotos:"No photos",photoErr:"Could not process the photo",linkBuilding:"Preparing the link…",saveFirst:"Add the model",apprBy:"{s} {when}",
+cTitle:"Repair card",cFrom:"Shop: {shop}",cReceived:"Received {date}",cApproveTitle:"Your approval is needed",cApproveText:"The technician proposes:",cNewTotal:"New total: {sum}",cAgree:"I agree",cDisagree:"I don't agree",cSent:"WhatsApp will open with a ready message. Send it to the shop.",cYourCode:"Your code: {c}",cCondition:"Condition when you handed it over",cDamage:"Visible damage",cNoDamage:"None marked",cPrelim:"Preliminary price",cAgreed:"Agreed",cKeep:"Keep this link: it is a copy of your repair card. It is not stored on any server.",cAsOf:"Card as of {date}. The shop sends updates as a new link.",cBroken:"This link is damaged. Ask the shop to send it again.",cNoPhotosHere:"The shop has the photos; they were in the first link.",cProblem:"Problem",cDevice:"Device",cDecided:"Answer recorded",
+msgCard:"Hello! {shop}: repair card {id} ({model}). Intake photos, check, price and status:\n{link}",msgStatus:"{shop}, {id} ({model}): status is now {status}.\n{link}",msgApprove:"{shop}, {id}: your approval is needed: {desc}, {price}. Open the link:\n{link}",replyAgree:"{id}: I agree: {desc}, {price}. Code: {code}",replyDecline:"{id}: I don't agree: {desc}, {price}. Code: {code}",
+pSignC:"Customer signature",pSignT:"Technician signature",pScan:"Scan to open the card on your phone",pAgree:"The customer has seen the device's condition and the preliminary price.",
+st:{accepted:"Accepted",diagnosis:"Diagnosis",waiting_part:"Waiting for part",repair:"In repair",ready:"Ready",picked:"Picked up"},
+ck:{power:"Turns on",screen:"Display",touch:"Touch",camb:"Back camera",camf:"Front camera",speaker:"Speaker",mic:"Microphone",charge:"Charging",buttons:"Buttons",bio:"Face ID / fingerprint",wifi:"Wi-Fi / Bluetooth",sim:"Network / SIM"},
+dm:{scr:"Scratches on screen",crk:"Cracked screen",back:"Cracked back",dent:"Dents on frame",bent:"Bent",water:"Signs of water"},
+fl:{screen:"Broken screen",charge:"Not charging",battery:"Battery drains",sound:"No sound",camera:"Camera",dead:"Won't turn on",water:"Water damage"}}
+};
+const LOCALES={ru:"ru-RU",kk:"kk-KZ",en:"en-GB"};
+const CHECKS=["power","screen","touch","camb","camf","speaker","mic","charge","buttons","bio","wifi","sim"];
+const DAMAGE=["scr","crk","back","dent","bent","water"];
+const FAULTS=["screen","charge","battery","sound","camera","dead","water"];
+const MODELS=["iPhone","Samsung","Xiaomi","Redmi","Huawei","Honor","Realme"];
+const STATUSES=["accepted","diagnosis","waiting_part","repair","ready","picked"];
+
+/* ===================== storage ===================== */
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){toast(t("storageFull"));return false}}};
+let S=LS.get("rp_settings",null);
+let CARDS=LS.get("rp_cards",[]);
+let EVENTS=LS.get("rp_events",[]);
+let LANG=(S&&S.lang)||(/^kk/.test(navigator.language)?"kk":/^en/.test(navigator.language)?"en":"ru");
+function saveCards(){return LS.set("rp_cards",CARDS)}
+function saveSettings(){return LS.set("rp_settings",S)}
+function logEv(ev,card,value,seconds){
+  EVENTS.push({t:new Date().toISOString(),sess:(S&&S.sess)||"",ev,card:card||"",v:value==null?"":String(value),s:seconds==null?"":seconds});
+  LS.set("rp_events",EVENTS);
+}
+
+/* ===================== helpers ===================== */
+function t(k,vars){let s=(T[LANG]&&T[LANG][k]);if(s==null)s=T.ru[k];if(s==null)return k;if(vars)for(const x in vars)s=s.split("{"+x+"}").join(vars[x]);return s}
+function tt(group,k,lang){const L=T[lang||LANG]||T.ru;return (L[group]&&L[group][k])||T.ru[group][k]||k}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function noCur(s){return String(s).replace(/,\s*₸$/,"")}
+function money(n,lang){n=Math.round(Number(n)||0);return new Intl.NumberFormat(LOCALES[lang||LANG]||"ru-RU").format(n)+" ₸"}
+function fdate(iso,lang){if(!iso)return "";const d=new Date(iso);if(isNaN(d))return "";return d.toLocaleString(LOCALES[lang||LANG]||"ru-RU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}
+function mmss(sec){sec=Math.max(0,Math.round(sec));return Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0")}
+function digits(p){let d=String(p||"").replace(/\D/g,"");if(d.length===11&&d[0]==="8")d="7"+d.slice(1);if(d.length===10)d="7"+d;return d}
+function safeImg(u){return typeof u==="string"&&/^data:image\/(webp|jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(u)?u:""}
+function uid(){return Math.random().toString(36).slice(2,8)}
+function cardById(id){return CARDS.find(c=>c.id===id)}
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return Array.from((r||document).querySelectorAll(s))}
+let toastTimer;function toast(msg){let el=$(".toast");if(!el){el=document.createElement("div");el.className="toast";document.body.appendChild(el)}el.textContent=msg;el.style.display="block";clearTimeout(toastTimer);toastTimer=setTimeout(()=>{el.style.display="none"},2600)}
+function signature(){return `<footer class="sig"><div class="made">Crafted by Claude Opus 5.5 (UltraCode)</div><span class="hand">sheinorshin</span><a href="mailto:sheinorshin@gmail.com">sheinorshin@gmail.com</a></footer>`}
+
+/* ===================== SHA-256 (approval codes) ===================== */
+const K256=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+function sha256(str){
+  const bytes=new TextEncoder().encode(str),l=bytes.length,padLen=((l+9+63)>>6)<<6;
+  const m=new Uint8Array(padLen);m.set(bytes);m[l]=0x80;const dv=new DataView(m.buffer);
+  dv.setUint32(padLen-4,(l*8)>>>0);dv.setUint32(padLen-8,Math.floor(l/0x20000000));
+  let H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];const w=new Uint32Array(64);
+  for(let i=0;i<padLen;i+=64){
+    for(let j=0;j<16;j++)w[j]=dv.getUint32(i+j*4);
+    for(let j=16;j<64;j++){const x=w[j-15],y=w[j-2];const s0=((x>>>7)|(x<<25))^((x>>>18)|(x<<14))^(x>>>3);const s1=((y>>>17)|(y<<15))^((y>>>19)|(y<<13))^(y>>>10);w[j]=(w[j-16]+s0+w[j-7]+s1)>>>0}
+    let [a,b,c,d,e,f,g,h]=H;
+    for(let j=0;j<64;j++){const S1=((e>>>6)|(e<<26))^((e>>>11)|(e<<21))^((e>>>25)|(e<<7));const ch=(e&f)^(~e&g);const t1=(h+S1+ch+K256[j]+w[j])>>>0;const S0=((a>>>2)|(a<<30))^((a>>>13)|(a<<19))^((a>>>22)|(a<<10));const mj=(a&b)^(a&c)^(b&c);const t2=(S0+mj)>>>0;h=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0}
+    H=[H[0]+a,H[1]+b,H[2]+c,H[3]+d,H[4]+e,H[5]+f,H[6]+g,H[7]+h].map(x=>x>>>0);
+  }
+  return H.map(x=>x.toString(16).padStart(8,"0")).join("");
+}
+const B32="23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+function approvalCode(cardId,item,decision){
+  const hex=sha256([cardId,item.id,item.desc,Math.round(item.price),decision].join("|"));
+  let n=parseInt(hex.slice(0,8),16)>>>2,out="";for(let i=0;i<6;i++){out=B32[n&31]+out;n=Math.floor(n/32)}return out;
+}
+
+/* ===================== link encoding ===================== */
+function b64u(bytes){let s="";for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+function unb64u(str){str=str.replace(/-/g,"+").replace(/_/g,"/");while(str.length%4)str+="=";const bin=atob(str);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u}
+async function streamBytes(bytes,ctor){const s=new Blob([bytes]).stream().pipeThrough(ctor);return new Uint8Array(await new Response(s).arrayBuffer())}
+async function encodePayload(obj){
+  const raw=new TextEncoder().encode(JSON.stringify(obj));
+  if(typeof CompressionStream!=="undefined"){try{return "z"+b64u(await streamBytes(raw,new CompressionStream("deflate-raw")))}catch(e){}}
+  return "j"+b64u(raw);
+}
+async function decodePayload(s){
+  const kind=s[0],bytes=unb64u(s.slice(1));
+  const out=kind==="z"?await streamBytes(bytes,new DecompressionStream("deflate-raw")):bytes;
+  return JSON.parse(new TextDecoder().decode(out));
+}
+function baseUrl(){return location.href.split("#")[0]}
+function payloadOf(card,withPhotos){
+  return {v:1,l:LANG,n:S.shopName,w:digits(S.shopPhone),i:card.id,t:card.createdAt,m:card.model,f:card.fault,
+    k:CHECKS.map(k=>({ok:"1",bad:"0"}[card.checks[k]]||"-")).join(""),d:card.damage,dn:card.damageNote||"",
+    p:card.prelim||0,pn:card.prelimNote?1:0,df:card.diagFee||0,
+    it:card.items.map(x=>[x.id,x.kind==="extra"?1:0,x.desc,Math.round(x.price),x.state==="approved"?1:x.state==="declined"?2:0,x.dAt||""]),
+    s:card.status,sl:card.statusLog.map(x=>[x.s,x.at]),u:new Date().toISOString(),ph:withPhotos?card.photos:[]};
+}
+const LINKS={};
+async function buildLinks(card){
+  const key=card.id+":"+card.rev;
+  if(LINKS[key])return LINKS[key];
+  const full=baseUrl()+"#c="+await encodePayload(payloadOf(card,true));
+  const short=baseUrl()+"#c="+await encodePayload(payloadOf(card,false));
+  return LINKS[key]={full,short};
+}
+
+/* ===================== photos ===================== */
+let WEBP=null;
+function canWebp(){if(WEBP==null){try{WEBP=document.createElement("canvas").toDataURL("image/webp").startsWith("data:image/webp")}catch(e){WEBP=false}}return WEBP}
+function blobToDataURL(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)})}
+function toBlob(cv,type,q){return new Promise(res=>cv.toBlob(res,type,q))}
+async function loadBitmap(file){
+  if(window.createImageBitmap){try{return await createImageBitmap(file,{imageOrientation:"from-image"})}catch(e){try{return await createImageBitmap(file)}catch(e2){}}}
+  return await new Promise((res,rej)=>{const img=new Image();img.onload=()=>res(img);img.onerror=rej;img.src=URL.createObjectURL(file)});
+}
+async function processPhoto(file){
+  const bmp=await loadBitmap(file);const W=bmp.width,H=bmp.height;const type=canWebp()?"image/webp":"image/jpeg";
+  const cv=document.createElement("canvas");const ctx=cv.getContext("2d");let last=null;
+  for(const side of [520,440,360,300]){
+    const k=Math.min(1,side/Math.max(W,H));cv.width=Math.max(1,Math.round(W*k));cv.height=Math.max(1,Math.round(H*k));
+    ctx.fillStyle="#000";ctx.fillRect(0,0,cv.width,cv.height);ctx.drawImage(bmp,0,0,cv.width,cv.height);
+    for(const q of [0.62,0.5,0.4,0.32]){const b=await toBlob(cv,type,q);if(!b)continue;last=b;if(b.size<=12500)return blobToDataURL(b)}
+  }
+  return blobToDataURL(last);
+}
+
+/* ===================== router ===================== */
+let VIEW={};
+function go(h){if(location.hash===h)route();else location.hash=h}
+window.addEventListener("hashchange",route);
+async function route(){
+  const h=location.hash||"";
+  closeSheets();
+  if(h.startsWith("#c=")){return renderCustomer(h.slice(3))}
+  if(!S||!S.shopName){return renderSetup()}
+  if(h==="#/new")return renderNew();
+  if(h.startsWith("#/card/"))return renderCard(decodeURIComponent(h.slice(7)));
+  if(h==="#/settings")return renderSettings();
+  return renderList();
+}
+function closeSheets(){$$(".sheet,.viewer").forEach(x=>x.remove());clearInterval(VIEW.timer)}
+function shell(title,sub,left,right,body,extra){
+  $("#app").onclick=null;$("#app").innerHTML=`<header class="top">${left||""}<h1>${esc(title)}${sub?`<span class="sub">${esc(sub)}</span>`:""}</h1>${right||""}</header><main>${body}</main>${extra||""}${signature()}`;
+  document.documentElement.lang=LANG==="kk"?"kk":LANG;
+  window.scrollTo(0,0);
+}
+
+/* ===================== setup ===================== */
+function renderSetup(){
+  shell("RepairPassport",t("tagline"),"","",`
+  <div class="card">
+    <h2>${t("setupTitle")}</h2><p class="hint">${t("setupHint")}</p>
+    <label class="f">${t("shopName")}</label><input class="in" id="sName" autocomplete="organization" placeholder="Phone Service">
+    <label class="f">${t("shopPhone")}</label><input class="in" id="sPhone" type="tel" inputmode="tel" placeholder="+7 7__ ___ __ __">
+    <label class="f">${t("language")}</label>
+    <div class="chips" id="sLang">${["ru","kk","en"].map(l=>`<span class="chip ${l===LANG?"on":""}" data-l="${l}">${{ru:"Русский",kk:"Қазақша",en:"English"}[l]}</span>`).join("")}</div>
+    <div class="sep"></div>
+    <button class="btn" id="sGo">${t("start")}</button>
+    <p class="hint" style="margin-top:12px">${t("privacy")}</p>
+  </div>`);
+  $("#sLang").onclick=e=>{const l=e.target.dataset.l;if(!l)return;LANG=l;const n=$("#sName").value,p=$("#sPhone").value;renderSetup();$("#sName").value=n;$("#sPhone").value=p};
+  $("#sGo").onclick=()=>{const n=$("#sName").value.trim();if(!n){$("#sName").focus();return}
+    S={shopName:n,shopPhone:$("#sPhone").value.trim(),lang:LANG,next:1,sess:""};saveSettings();logEv("setup_done","",LANG);go("#/")};
+}
+
+/* ===================== list ===================== */
+function statusBadge(c){const p=c.items.some(x=>x.state==="pending");return `<span class="badge ${p?"b-pend":"b-st"}">${p?t("pendingN"):esc(tt("st",c.status))}</span>`}
+function renderList(){
+  const today=new Date().toDateString();const real=CARDS.filter(c=>!c.demo);
+  const nToday=real.filter(c=>new Date(c.createdAt).toDateString()===today).length;
+  const times=real.map(c=>c.createSec).filter(x=>x>0);const avg=times.length?times.reduce((a,b)=>a+b,0)/times.length:0;
+  const pend=CARDS.filter(c=>c.items.some(x=>x.state==="pending")).length;
+  const items=CARDS.slice().sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(c=>`
+    <a class="item" href="#/card/${encodeURIComponent(c.id)}">
+      <div class="thumb" style="${c.photos[0]?`background-image:url('${safeImg(c.photos[0])}')`:""}">${c.photos[0]?"":esc(c.id.slice(-4))}</div>
+      <div style="flex:1;min-width:0"><div class="t">${esc(c.model)} ${c.demo?`<span class="badge b-demo">demo</span>`:""}</div>
+      <div class="m">${esc(c.id)} · ${esc(fdate(c.createdAt))}${c.customer.name?" · "+esc(c.customer.name):""}</div></div>
+      ${statusBadge(c)}
+    </a>`).join("");
+  shell("RepairPassport",S.shopName,"",`<button class="hbtn" onclick="go('#/settings')" aria-label="${t("settings")}">⚙︎</button>`,`
+    <button class="btn newbig" onclick="go('#/new')">＋ ${t("newCard")}</button>
+    <div class="stats"><div><b>${nToday}</b><span>${t("cardsToday")}</span></div><div><b>${avg?mmss(avg):"–"}</b><span>${t("avgTime")}</span></div><div><b>${pend}</b><span>${t("pendingN")}</span></div></div>
+    ${S.sess?`<p class="hint">🧪 ${esc(t("testMode"))}: <b>${esc(S.sess)}</b></p>`:""}
+    ${items||`<div class="empty">${t("noCards")}</div>`}`);
+}
+
+/* ===================== new card ===================== */
+function renderNew(){
+  const D={photos:[],checks:{},damage:[],faults:[],started:Date.now()};VIEW.draft=D;
+  logEv("card_start","",null);
+  shell(t("newCard"),"",`<button class="hbtn" onclick="history.length>1?history.back():go('#/')">←</button>`,`<span class="timer" id="tm">⏱ 0:00</span>`,`
+  <div class="card"><h2>${t("device")}</h2>
+    <label class="f">${t("model")}</label>
+    <input class="in" id="nModel" placeholder="${t("modelPh")}" autocomplete="off">
+    <div class="chips" id="nModels">${MODELS.map(m=>`<span class="chip" data-m="${m}">${m}</span>`).join("")}</div>
+    <label class="f">${t("fault")}</label>
+    <div class="chips" id="nFaults">${FAULTS.map(f=>`<span class="chip" data-f="${f}">${esc(tt("fl",f))}</span>`).join("")}</div>
+    <textarea class="in" id="nFault" placeholder="${t("faultPh")}" style="margin-top:6px"></textarea>
+  </div>
+  <div class="card"><h2>${t("photos")}</h2><p class="hint">${t("photoHint")}</p><div class="photos" id="nPhotos"></div></div>
+  <div class="card"><h2>${t("condition")}</h2><p class="hint">${t("condHint")}</p>
+    <div class="checks" id="nChecks">${CHECKS.map(k=>`<button type="button" class="ck" data-k="${k}"><i>–</i><span>${esc(tt("ck",k))}</span></button>`).join("")}</div>
+    <button type="button" class="btn ghost sm" id="nDead" style="margin-top:8px;width:100%">${t("deadPhone")}</button>
+    <div class="legend"><span><b style="background:var(--ok)"></b>${t("works")}</span><span><b style="background:var(--bad)"></b>${t("notWorking")}</span><span><b style="background:var(--ntSoft);border:1px solid var(--line)"></b>${t("notTested")}</span></div>
+    <label class="f">${t("damage")}</label>
+    <div class="chips" id="nDamage">${DAMAGE.map(d=>`<span class="chip" data-d="${d}">${esc(tt("dm",d))}</span>`).join("")}</div>
+    <input class="in" id="nDamageNote" placeholder="${t("damageNote")}" style="margin-top:6px">
+  </div>
+  <div class="card"><h2>${t("price")}</h2>
+    <label class="f">${t("prelim")}</label><input class="in" id="nPrice" type="number" inputmode="numeric" min="0" step="500" placeholder="15000">
+    <label class="chip on" id="nPrelimNote" style="display:inline-block;margin-top:8px">✓ ${t("prelimNote")}</label>
+    <label class="f">${t("diagFee")} <small>(${t("optional")})</small></label><input class="in" id="nDiag" type="number" inputmode="numeric" min="0" step="500" placeholder="0">
+  </div>
+  <div class="card"><h2>${t("customer")} <small class="muted" style="text-transform:none;letter-spacing:0;font-weight:500">(${t("optional")})</small></h2>
+    <div class="grid2"><input class="in" id="nCName" placeholder="${t("custName")}" autocomplete="off"><input class="in" id="nCPhone" type="tel" inputmode="tel" placeholder="+7 7__ ___ __ __"></div>
+  </div>
+  <div class="sticky-save"><button class="btn" id="nSave">${t("saveCard")}</button></div>`);
+  VIEW.timer=setInterval(()=>{const el=$("#tm");if(el)el.textContent="⏱ "+mmss((Date.now()-D.started)/1000)},500);
+  drawPhotos();
+  $("#nModels").onclick=e=>{const m=e.target.dataset.m;if(!m)return;const inp=$("#nModel");if(!inp.value.toLowerCase().startsWith(m.toLowerCase()))inp.value=m+" ";inp.focus()};
+  $("#nFaults").onclick=e=>{const f=e.target.dataset.f;if(!f)return;e.target.classList.toggle("on");
+    const on=$$("#nFaults .chip.on").map(x=>tt("fl",x.dataset.f));const ta=$("#nFault");const extra=ta.value.split(/[,;]\s*/).filter(s=>s&&!FAULTS.some(k=>tt("fl",k)===s));ta.value=on.concat(extra).join(", ")};
+  $("#nChecks").onclick=e=>{const b=e.target.closest(".ck");if(!b)return;const k=b.dataset.k;const cur=D.checks[k]||"nt";const nx=cur==="nt"?"ok":cur==="ok"?"bad":"nt";D.checks[k]=nx;paintCheck(b,nx)};
+  $("#nDead").onclick=()=>{CHECKS.forEach(k=>{D.checks[k]="nt"});D.checks.power="bad";$$("#nChecks .ck").forEach(b=>paintCheck(b,D.checks[b.dataset.k]))};
+  $("#nDamage").onclick=e=>{const d=e.target.dataset.d;if(!d)return;e.target.classList.toggle("on")};
+  $("#nPrelimNote").onclick=e=>{const el=e.currentTarget;el.classList.toggle("on");el.textContent=(el.classList.contains("on")?"✓ ":"")+t("prelimNote")};
+  $("#nSave").onclick=saveNew;
+}
+function paintCheck(b,v){b.classList.remove("ok","bad");if(v==="ok")b.classList.add("ok");if(v==="bad")b.classList.add("bad");b.querySelector("i").textContent=v==="ok"?"✓":v==="bad"?"✕":"–"}
+function drawPhotos(){
+  const D=VIEW.draft;const box=$("#nPhotos");if(!box)return;
+  box.innerHTML=D.photos.map((p,i)=>`<div class="ph"><img src="${safeImg(p)}" alt=""><button type="button" data-del="${i}" aria-label="remove">×</button></div>`).join("")+
+   (D.photos.length<3?`<div class="phadd" id="nAddPhoto"><span>📷</span>${t("addPhoto")} ${D.photos.length+1}/3</div>`:"");
+  box.onclick=e=>{const del=e.target.dataset.del;if(del!=null){D.photos.splice(+del,1);drawPhotos();return}if(e.target.closest("#nAddPhoto"))pickPhoto()};
+}
+function pickPhoto(){const inp=$("#cam");inp.value="";inp.onchange=async()=>{const f=inp.files&&inp.files[0];if(!f)return;
+  try{const url=await processPhoto(f);VIEW.draft.photos.push(url);logEv("photo_add","",Math.round(url.length*0.75));drawPhotos()}catch(e){toast(t("photoErr"))}};inp.click()}
+function saveNew(){
+  const D=VIEW.draft;const model=$("#nModel").value.trim();
+  if(!model){toast(t("needModel"));$("#nModel").focus();return}
+  const sec=Math.round((Date.now()-D.started)/1000);
+  const no=S.next||1;S.next=no+1;saveSettings();
+  const card={id:"RP-"+String(no).padStart(4,"0"),rev:1,createdAt:new Date().toISOString(),createSec:sec,sess:S.sess||"",
+    model,fault:$("#nFault").value.trim(),photos:D.photos.slice(),checks:Object.assign({},D.checks),
+    damage:$$("#nDamage .chip.on").map(x=>x.dataset.d),damageNote:$("#nDamageNote").value.trim(),
+    prelim:Number($("#nPrice").value)||0,prelimNote:$("#nPrelimNote").classList.contains("on"),diagFee:Number($("#nDiag").value)||0,
+    customer:{name:$("#nCName").value.trim(),phone:$("#nCPhone").value.trim()},
+    items:[],status:"accepted",statusLog:[{s:"accepted",at:new Date().toISOString()}],sent:[],log:[],help:""};
+  card.log.push({at:card.createdAt,e:"created",v:mmss(sec)});
+  CARDS.push(card);
+  if(!saveCards()){CARDS.pop();return}
+  const marked=CHECKS.filter(k=>card.checks[k]&&card.checks[k]!=="nt").length;
+  logEv("card_save",card.id,`photos=${card.photos.length};checks=${marked};damage=${card.damage.length};price=${card.prelim}`,sec);
+  clearInterval(VIEW.timer);toast(t("saved")+" · "+t("madeIn",{s:mmss(sec)}));
+  go("#/card/"+encodeURIComponent(card.id));
+  if(S.sess)setTimeout(()=>askHelp(card.id),350);
+}
+function askHelp(id){
+  const sh=document.createElement("div");sh.className="sheet";
+  sh.innerHTML=`<div class="panel"><h2 style="margin:0 0 6px;font-size:18px">🧪 ${t("helpQ")}</h2><p class="hint" style="margin:0 0 12px">${esc(S.sess)} · ${esc(id)}</p><div class="grid2"><button class="btn sec" data-h="yes">${t("yes")}</button><button class="btn sec" data-h="no">${t("no")}</button></div></div>`;
+  sh.onclick=e=>{const h=e.target.dataset.h;if(!h)return;const c=cardById(id);if(c){c.help=h;saveCards()}logEv("help",id,h);sh.remove()};
+  document.body.appendChild(sh);
+}
+
+/* ===================== card detail (shop) ===================== */
+function bump(c){c.rev=(c.rev||1)+1;saveCards()}
+function addLog(c,e,v){c.log.push({at:new Date().toISOString(),e,v:v||""})}
+function agreedTotal(items){return items.filter(x=>x.state==="approved").reduce((a,x)=>a+Number(x.price||0),0)}
+function renderCard(id){
+  const c=cardById(id);if(!c){go("#/");return}
+  VIEW.card=id;
+  const ck=CHECKS.map(k=>{const v=c.checks[k]||"nt";return `<li><i class="${v==="ok"?"i-ok":v==="bad"?"i-bad":"i-nt"}">${v==="ok"?"✓":v==="bad"?"✕":"–"}</i>${esc(tt("ck",k))}</li>`}).join("");
+  const items=c.items.map(x=>{
+    const pend=x.state==="pending";
+    const via=x.via?(x.via==="code"?t("viaCode"):x.via==="person"?t("viaPerson"):t("viaManual")):"";
+    return `<div class="pitem ${pend?"pending":""}">
+      <div class="top"><div><div class="desc">${esc(x.desc)}</div><div class="small muted">${esc(x.kind==="extra"?t("kindExtra"):t("kindRepair"))} · ${esc(fdate(x.at))}</div></div><div class="pr">${money(x.price)}</div></div>
+      ${pend?`<div class="codebox">${t("codes",{a:`<b>${approvalCode(c.id,x,"A")}</b>`,d:`<b>${approvalCode(c.id,x,"D")}</b>`})}</div>
+        <input class="in" data-code="${x.id}" placeholder="${t("enterCode")}" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase">
+        <div class="grid2" style="margin-top:8px"><button class="btn sm" data-ok="${x.id}">${t("custAgreed")}</button><button class="btn sm sec" data-person="${x.id}">${t("inPerson")}</button></div>
+        <button class="btn sm danger" data-no="${x.id}" style="width:100%;margin-top:8px">${t("custDeclined")}</button>`
+        :`<div class="small" style="margin-top:4px"><span class="badge ${x.state==="approved"?"b-ok":"b-bad"}">${esc(x.state==="approved"?t("approved"):t("declined"))}</span> ${esc(via)} · ${esc(fdate(x.dAt))}</div>`}
+    </div>`}).join("");
+  const log=c.log.slice().reverse().map(l=>`<li>${esc(fdate(l.at))} — ${esc(logLabel(l))}</li>`).join("");
+  shell(c.id+" · "+c.model,`${tt("st",c.status)} · ${t("madeIn",{s:mmss(c.createSec||0)})}`,`<button class="hbtn" onclick="go('#/')">←</button>`,"",`
+  <div class="card"><h2>${t("send")}</h2>
+    <div class="stack">
+      <button class="btn wa" data-send="wa">WhatsApp</button>
+      <div class="grid2"><button class="btn sec" data-send="share">${t("shareBtn")}</button><button class="btn sec" data-send="print">🖨 ${t("print")}</button></div>
+      <div class="grid2"><button class="btn ghost sm" data-send="copy">${t("copyLink")}</button><button class="btn ghost sm" data-send="short">${t("shortLink")}</button></div>
+      <a class="small" href="#" data-send="preview">${t("preview")} ↗</a>
+    </div>
+  </div>
+  <div class="card"><h2>${t("status")}</h2>
+    <div class="sts">${STATUSES.map(s=>`<span class="chip ${s===c.status?"on":""}" data-st="${s}">${esc(tt("st",s))}</span>`).join("")}</div>
+    <button class="btn sec sm" data-send="status" style="width:100%;margin-top:10px">${t("notify")}</button>
+  </div>
+  <div class="card"><h2>${t("prices")}</h2>
+    <div class="row small"><span class="muted">${t("prelimShort")}${c.prelimNote?" ("+esc(t("prelimNote").toLowerCase())+")":""}</span><b style="flex:none">${money(c.prelim)}</b></div>
+    ${c.diagFee?`<div class="row small"><span class="muted">${esc(noCur(t("diagFee")))}</span><b style="flex:none">${money(c.diagFee)}</b></div>`:""}
+    ${items}
+    <div class="total"><span>${t("total")}</span><span>${money(agreedTotal(c.items))}</span></div>
+    <div class="sep"></div>
+    <label class="f">${t("addItem")}</label>
+    <div class="chips" id="kind"><span class="chip on" data-kind="repair">${t("kindRepair")}</span><span class="chip" data-kind="extra">${t("kindExtra")}</span></div>
+    <input class="in" id="iDesc" placeholder="${t("itemDescPh")}" style="margin-top:6px">
+    <input class="in" id="iPrice" type="number" inputmode="numeric" min="0" step="500" placeholder="${t("itemPrice")}" style="margin-top:6px">
+    <button class="btn warn" id="iAsk" style="margin-top:8px">${t("askApprove")}</button>
+  </div>
+  <div class="card"><h2>${t("photos")}</h2>${c.photos.length?`<div class="cphotos">${c.photos.map(p=>`<img src="${safeImg(p)}" alt="" data-zoom>`).join("")}</div>`:`<p class="muted small">${t("noPhotos")}</p>`}</div>
+  <div class="card"><h2>${t("condition")}</h2>
+    <dl class="kv"><dt>${t("fault")}</dt><dd>${esc(c.fault||"–")}</dd>${c.customer.name||c.customer.phone?`<dt>${t("customer")}</dt><dd>${esc([c.customer.name,c.customer.phone].filter(Boolean).join(" · "))}</dd>`:""}</dl>
+    <ul class="clist" style="margin-top:8px">${ck}</ul>
+    <p class="small" style="margin:10px 0 0"><b>${t("damage")}:</b> ${esc(c.damage.map(d=>tt("dm",d)).concat(c.damageNote?[c.damageNote]:[]).join(", ")||"–")}</p>
+  </div>
+  <div class="card"><h2>${t("log")}</h2><ul class="loglist">${log}</ul></div>
+  <button class="btn danger" id="cDel">${t("deleteCard")}</button>`);
+  const app=$("#app");
+  app.onclick=async e=>{
+    const el=e.target.closest("[data-send],[data-st],[data-ok],[data-person],[data-no],[data-kind],[data-zoom]");if(!el)return;
+    if(el.dataset.zoom!=null){zoom(el.src);return}
+    if(el.dataset.kind){$$("#kind .chip").forEach(x=>x.classList.toggle("on",x===el));return}
+    if(el.dataset.st){const s=el.dataset.st;if(s!==c.status){c.status=s;c.statusLog.push({s,at:new Date().toISOString()});addLog(c,"status",s);bump(c);logEv("status",c.id,s);renderCard(id)}return}
+    if(el.dataset.ok){decide(c,el.dataset.ok,"ok");return}
+    if(el.dataset.person){decide(c,el.dataset.person,"person");return}
+    if(el.dataset.no){decide(c,el.dataset.no,"no");return}
+    if(el.dataset.send){e.preventDefault();sendAction(c,el.dataset.send)}
+  };
+  $("#iAsk").onclick=()=>{
+    const desc=$("#iDesc").value.trim(),price=Number($("#iPrice").value);
+    if(!desc){$("#iDesc").focus();return}if(!(price>=0)||$("#iPrice").value===""){$("#iPrice").focus();return}
+    const kind=($(`#kind .chip.on`)||{}).dataset.kind||"repair";
+    const it={id:uid(),kind,desc,price,state:"pending",at:new Date().toISOString(),dAt:"",via:""};
+    c.items.push(it);addLog(c,"request",desc+" — "+money(price));bump(c);logEv("item_request",c.id,price);
+    renderCard(id);toast(t("reqSent"));
+    buildLinks(c).then(()=>{VIEW.pendingAsk=it.id});
+  };
+  let delArm=false;
+  $("#cDel").onclick=()=>{if(!delArm){delArm=true;$("#cDel").textContent=t("confirmDelete");return}CARDS=CARDS.filter(x=>x.id!==c.id);saveCards();logEv("card_delete",c.id,"");go("#/")};
+  // pre-build links so share/print run inside the user's tap
+  buildLinks(c).catch(()=>{});
+}
+function logLabel(l){
+  if(l.e==="created")return t("saved")+" ("+l.v+")";
+  if(l.e==="status")return t("status")+": "+tt("st",l.v);
+  if(l.e==="request")return t("askApprove")+": "+l.v;
+  if(l.e==="decision")return l.v;
+  if(l.e==="sent")return t("send")+": "+l.v;
+  return l.e+" "+l.v;
+}
+function decide(c,itemId,how){
+  const x=c.items.find(i=>i.id===itemId);if(!x||x.state!=="pending")return;
+  if(how==="ok"){
+    const inp=$(`[data-code="${itemId}"]`);const code=(inp&&inp.value||"").trim().toUpperCase().replace(/\s/g,"");
+    if(code){
+      if(code===approvalCode(c.id,x,"A")){x.state="approved";x.via="code";toast(t("codeOk"))}
+      else if(code===approvalCode(c.id,x,"D")){x.state="declined";x.via="code"}
+      else{toast(t("codeBad"));inp.focus();return}
+    }else{x.state="approved";x.via="manual"}
+  }else if(how==="person"){x.state="approved";x.via="person"}
+  else{x.state="declined";x.via="manual"}
+  x.dAt=new Date().toISOString();
+  addLog(c,"decision",`${x.desc}: ${x.state==="approved"?t("approved"):t("declined")} (${x.via==="code"?t("viaCode"):x.via==="person"?t("viaPerson"):t("viaManual")})`);
+  bump(c);logEv("item_decision",c.id,`${x.state};${x.via}`);renderCard(c.id);
+}
+function sendAction(c,kind){
+  const key=c.id+":"+c.rev;const L=LINKS[key];
+  if(!L){toast(t("linkBuilding"));buildLinks(c).catch(()=>{});return}
+  const pending=c.items.filter(x=>x.state==="pending").slice(-1)[0];
+  let msg;
+  if(kind==="status")msg=t("msgStatus",{shop:S.shopName,id:c.id,model:c.model,status:tt("st",c.status),link:L.full});
+  else if(pending&&kind!=="short")msg=t("msgApprove",{shop:S.shopName,id:c.id,desc:pending.desc,price:money(pending.price),link:L.full});
+  else msg=t("msgCard",{shop:S.shopName,id:c.id,model:c.model,link:kind==="short"?L.short:L.full});
+  const note=(v)=>{c.sent.push({at:new Date().toISOString(),kind:v});addLog(c,"sent",v);saveCards();logEv("link_"+v,c.id,v==="short"?L.short.length:L.full.length)};
+  if(kind==="wa"||kind==="status"){
+    const ph=digits(c.customer.phone);
+    window.open((ph?`https://wa.me/${ph}`:"https://wa.me/")+"?text="+encodeURIComponent(msg),"_blank");note(kind==="status"?"status":"whatsapp");return;
+  }
+  if(kind==="share"){if(navigator.share){navigator.share({text:msg}).then(()=>note("share")).catch(()=>{})}else{copyText(msg);note("copy")}return}
+  if(kind==="copy"){copyText(L.full);note("copy");return}
+  if(kind==="short"){if(navigator.share){navigator.share({text:msg}).then(()=>note("short")).catch(()=>{})}else{copyText(L.short);note("short")}return}
+  if(kind==="preview"){window.open(L.full,"_blank");return}
+  if(kind==="print"){printCard(c,L.short);note("print")}
+}
+function copyText(s){
+  const done=()=>toast(t("copied"));
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(s).then(done,()=>fallback())}else fallback();
+  function fallback(){const ta=document.createElement("textarea");ta.value=s;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done()}catch(e){}ta.remove()}
+}
+function zoom(src){const v=document.createElement("div");v.className="viewer";v.innerHTML=`<img src="${safeImg(src)}" alt="">`;v.onclick=()=>v.remove();document.body.appendChild(v)}
+function qrSvg(text){try{const q=qrcode(0,"L");q.addData(text,"Byte");q.make();return q.createSvgTag({cellSize:3,margin:2,scalable:true})}catch(e){return ""}}
+function printCard(c,shortLink){
+  const ck=CHECKS.map(k=>{const v=c.checks[k]||"nt";return `<tr><td>${esc(tt("ck",k))}</td><td><b>${v==="ok"?"✓ "+t("works"):v==="bad"?"✕ "+t("notWorking"):"– "+t("notTested")}</b></td></tr>`}).join("");
+  const items=c.items.filter(x=>x.state!=="pending").map(x=>`<tr><td>${esc(x.desc)}</td><td>${money(x.price)}</td><td>${esc(x.state==="approved"?t("approved"):t("declined"))}</td></tr>`).join("");
+  $("#print").innerHTML=`
+   <div class="two"><div style="flex:1"><div style="font-size:12pt">${esc(S.shopName)}${S.shopPhone?" · "+esc(S.shopPhone):""}</div><h1>${t("cTitle")} ${esc(c.id)}</h1>
+   <div>${esc(fdate(c.createdAt))}</div></div><div class="qr" style="text-align:center">${qrSvg(shortLink)}<div style="font-size:10pt;max-width:48mm">${t("pScan")}</div></div></div>
+   <table><tr><td style="width:35%">${t("cDevice")}</td><td><b>${esc(c.model)}</b></td></tr><tr><td>${t("cProblem")}</td><td>${esc(c.fault||"–")}</td></tr>
+   ${c.customer.name||c.customer.phone?`<tr><td>${t("customer")}</td><td>${esc([c.customer.name,c.customer.phone].filter(Boolean).join(" · "))}</td></tr>`:""}
+   <tr><td>${t("cPrelim")}</td><td><b>${money(c.prelim)}</b>${c.prelimNote?" — "+esc(t("prelimNote").toLowerCase()):""}</td></tr>
+   ${c.diagFee?`<tr><td>${esc(noCur(t("diagFee")))}</td><td>${money(c.diagFee)}</td></tr>`:""}
+   <tr><td>${t("cDamage")}</td><td>${esc(c.damage.map(d=>tt("dm",d)).concat(c.damageNote?[c.damageNote]:[]).join(", ")||t("cNoDamage"))}</td></tr></table>
+   <div style="font-weight:bold;margin-top:8pt">${t("cCondition")}</div><table>${ck}</table>
+   ${items?`<div style="font-weight:bold;margin-top:8pt">${t("cAgreed")}</div><table>${items}</table>`:""}
+   ${c.photos.length?`<div class="pphotos" style="margin-top:8pt">${c.photos.map(p=>`<img src="${safeImg(p)}" alt="">`).join("")}</div>`:""}
+   <p style="margin-top:10pt">${t("pAgree")}</p>
+   <div class="sign"><div>${t("pSignC")}</div><div>${t("pSignT")}</div></div>
+   <p style="font-size:10pt;color:#555;margin-top:12pt">RepairPassport · ${t("cKeep")}</p>`;
+  setTimeout(()=>window.print(),60);
+}
+
+/* ===================== settings + export ===================== */
+function renderSettings(){
+  shell(t("settings"),S.shopName,`<button class="hbtn" onclick="go('#/')">←</button>`,"",`
+  <div class="card"><h2>${t("setupTitle")}</h2>
+    <label class="f">${t("shopName")}</label><input class="in" id="xName" value="${esc(S.shopName)}">
+    <label class="f">${t("shopPhone")}</label><input class="in" id="xPhone" type="tel" value="${esc(S.shopPhone)}">
+    <label class="f">${t("language")}</label>
+    <div class="chips" id="xLang">${["ru","kk","en"].map(l=>`<span class="chip ${l===LANG?"on":""}" data-l="${l}">${{ru:"Русский",kk:"Қазақша",en:"English"}[l]}</span>`).join("")}</div>
+    <label class="f">${t("testMode")}</label><input class="in" id="xSess" value="${esc(S.sess||"")}" placeholder="A1" autocapitalize="characters">
+    <p class="hint" style="margin-top:6px">${t("testHint")}</p>
+    <button class="btn" id="xSave" style="margin-top:6px">✓</button>
+  </div>
+  <div class="card stack">
+    <button class="btn sec" id="xExport">⬇ ${t("exportData")}</button>
+    <button class="btn ghost" id="xDemo">${t("demo")}</button>
+    <button class="btn danger" id="xWipe">${t("wipe")}</button>
+    <p class="hint" style="margin:6px 0 0">${t("privacy")} · ${CARDS.length} / ${EVENTS.length}</p>
+  </div>`);
+  $("#xLang").onclick=e=>{const l=e.target.dataset.l;if(!l)return;$$("#xLang .chip").forEach(x=>x.classList.toggle("on",x===e.target))};
+  $("#xSave").onclick=()=>{const l=($("#xLang .chip.on")||{}).dataset.l||LANG;S.shopName=$("#xName").value.trim()||S.shopName;S.shopPhone=$("#xPhone").value.trim();S.sess=$("#xSess").value.trim().toUpperCase();S.lang=l;LANG=l;saveSettings();logEv("settings","","sess="+S.sess);go("#/")};
+  $("#xExport").onclick=exportCsv;
+  $("#xDemo").onclick=async()=>{await addDemo();go("#/")};
+  let arm=false;$("#xWipe").onclick=()=>{if(!arm){arm=true;$("#xWipe").textContent=t("wipeConfirm");return}localStorage.removeItem("rp_cards");localStorage.removeItem("rp_events");CARDS=[];EVENTS=[];go("#/")};
+}
+function csv(rows){return rows.map(r=>r.map(v=>{v=v==null?"":String(v);return /[",\n;]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(",")).join("\n")}
+function complete(c){const marked=CHECKS.some(k=>c.checks[k]&&c.checks[k]!=="nt")||c.damage.length>0||c.checks.power==="bad";return c.photos.length>0&&marked&&c.prelim>0&&c.sent.length>0}
+function exportCsv(){
+  const lt=iso=>{const d=new Date(iso);return isNaN(d)?"":d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")+":"+String(d.getSeconds()).padStart(2,"0")};
+  const ev=[["time_utc","local_time","session","event","card","value","seconds"]].concat(EVENTS.map(e=>[e.t,lt(e.t),e.sess,e.ev,e.card,e.v,e.s]));
+  const cards=[["card","session","created_local","create_seconds","photos","checks_marked","damage_marked","preliminary_price","sent_or_printed","complete_card","help_needed","approvals_requested","approvals_recorded","approvals_by_code","status","demo"]]
+   .concat(CARDS.map(c=>[c.id,c.sess,lt(c.createdAt),c.createSec,c.photos.length,CHECKS.filter(k=>c.checks[k]&&c.checks[k]!=="nt").length,c.damage.length,c.prelim,c.sent.length?"yes":"no",complete(c)?"yes":"no",c.help||"",c.items.length,c.items.filter(x=>x.state!=="pending").length,c.items.filter(x=>x.via==="code").length,c.status,c.demo?"yes":"no"]));
+  const stamp=lt(new Date().toISOString()).slice(0,16).replace(/[: ]/g,"-");const tag=(S.sess||"shop").replace(/[^A-Za-z0-9]/g,"");
+  const files=[new File(["﻿"+csv(cards)],`repairpassport_cards_${tag}_${stamp}.csv`,{type:"text/csv"}),new File(["﻿"+csv(ev)],`repairpassport_events_${tag}_${stamp}.csv`,{type:"text/csv"})];
+  logEv("export","",CARDS.length);
+  if(navigator.canShare&&navigator.canShare({files})){navigator.share({files,title:"RepairPassport test data"}).catch(()=>download(files));}else download(files);
+}
+function download(files){files.forEach((f,i)=>setTimeout(()=>{const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)},i*400))}
+async function demoPhoto(variant){
+  const cv=document.createElement("canvas");cv.width=900;cv.height=900;const g=cv.getContext("2d");
+  const bg=g.createLinearGradient(0,0,900,900);bg.addColorStop(0,"#C9B79C");bg.addColorStop(1,"#A68F6F");g.fillStyle=bg;g.fillRect(0,0,900,900);
+  for(let i=0;i<40;i++){g.strokeStyle="rgba(90,60,30,.08)";g.lineWidth=3;g.beginPath();g.moveTo(0,i*24);g.bezierCurveTo(300,i*24+12,600,i*24-10,900,i*24+6);g.stroke()}
+  g.save();g.translate(450,450);g.rotate(variant?0.12:-0.08);
+  g.fillStyle="rgba(0,0,0,.28)";rr(g,-205,-385,420,790,58);g.fill();
+  g.fillStyle=variant?"#2B2F33":"#1C1F22";rr(g,-215,-400,420,790,58);g.fill();
+  if(!variant){g.fillStyle="#0B0D10";rr(g,-195,-375,380,740,44);g.fill();
+    const sc=g.createLinearGradient(-195,-375,185,365);sc.addColorStop(0,"#26323C");sc.addColorStop(1,"#0E1419");g.fillStyle=sc;rr(g,-188,-366,366,722,40);g.fill();
+    g.strokeStyle="rgba(235,245,255,.85)";g.lineWidth=3;[[[40,-120],[-60,-40],[-150,-90]],[[40,-120],[110,-10],[150,140]],[[40,-120],[-10,60],[-120,220]],[[40,-120],[140,-200]],[[-60,-40],[-170,30]],[[110,-10],[170,-60]]].forEach(p=>{g.beginPath();g.moveTo(p[0][0],p[0][1]);p.slice(1).forEach(q=>g.lineTo(q[0],q[1]));g.stroke()});
+    g.fillStyle="#000";rr(g,-55,-355,110,30,15);g.fill();
+  }else{g.fillStyle="#3A3F44";rr(g,-150,-330,170,170,40);g.fill();[[-110,-290],[-40,-290],[-75,-215]].forEach(p=>{g.fillStyle="#0F1215";g.beginPath();g.arc(p[0],p[1],32,0,7);g.fill();g.fillStyle="#2C4A60";g.beginPath();g.arc(p[0],p[1],16,0,7);g.fill()});
+    g.strokeStyle="rgba(230,230,230,.55)";g.lineWidth=2;for(let i=0;i<7;i++){g.beginPath();g.moveTo(-120+i*35,40+i*9);g.lineTo(-40+i*35,110+i*9);g.stroke()}}
+  g.restore();
+  g.fillStyle="rgba(255,255,255,.85)";g.font="bold 34px system-ui,sans-serif";g.fillText("DEMO PHOTO",30,870);
+  const b=await toBlob(cv,"image/jpeg",0.9);return processPhoto(new File([b],"demo.jpg",{type:"image/jpeg"}));
+  function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+}
+async function addDemo(){
+  const no=S.next||1;S.next=no+1;saveSettings();const now=new Date();
+  const card={id:"RP-"+String(no).padStart(4,"0"),rev:1,demo:true,createdAt:now.toISOString(),createSec:58,sess:S.sess||"",model:"iPhone 11",
+    fault:tt("fl","screen"),photos:[await demoPhoto(0),await demoPhoto(1)],
+    checks:{power:"ok",screen:"ok",touch:"bad",camb:"ok",camf:"ok",speaker:"ok",mic:"ok",charge:"ok",buttons:"ok",bio:"nt",wifi:"ok",sim:"ok"},
+    damage:["crk","back"],damageNote:"",prelim:25000,prelimNote:true,diagFee:2000,customer:{name:"",phone:""},
+    items:[],status:"accepted",statusLog:[{s:"accepted",at:now.toISOString()}],sent:[],log:[{at:now.toISOString(),e:"created",v:"0:58"}],help:""};
+  CARDS.push(card);saveCards();logEv("demo_load",card.id,"");
+}
+
+/* ===================== customer view ===================== */
+async function renderCustomer(payload){
+  let d;
+  try{d=await decodePayload(payload);if(!d||d.v!==1||!d.i)throw 0}catch(e){
+    $("#app").innerHTML=`<div class="chead"><div class="ttl">RepairPassport</div></div><main><div class="card"><p class="big">${esc(T[LANG].cBroken)}</p></div></main>${signature()}`;return}
+  let L=(VIEW.cLang)||(T[d.l]?d.l:"ru");
+  const tl=(k,v)=>{let s=T[L][k]??T.ru[k];if(v)for(const x in v)s=s.split("{"+x+"}").join(v[x]);return s};
+  const items=(Array.isArray(d.it)?d.it:[]).map(a=>({id:String(a[0]),kind:a[1]?"extra":"repair",desc:String(a[2]||""),price:Number(a[3])||0,state:a[4]===1?"approved":a[4]===2?"declined":"pending",dAt:a[5]||""}));
+  const agreed=items.filter(x=>x.state==="approved").reduce((s,x)=>s+x.price,0);
+  const pend=items.filter(x=>x.state==="pending");
+  const sl=Array.isArray(d.sl)?d.sl:[];const idx=Math.max(0,STATUSES.indexOf(d.s));
+  const whenOf=s=>{const r=sl.filter(x=>x[0]===s).slice(-1)[0];return r?fdate(r[1],L):""};
+  const steps=STATUSES.map((s,i)=>`<li class="${i<idx?"done":i===idx?"now":""}"><span class="dot">${i<idx?"✓":i+1}</span><span>${esc(tt("st",s,L))}<span class="when">${i<=idx?esc(whenOf(s)):""}</span></span></li>`).join("");
+  const kstr=String(d.k||"");
+  const ck=CHECKS.map((k,i)=>{const v=kstr[i]==="1"?"ok":kstr[i]==="0"?"bad":"nt";return `<li><i class="${v==="ok"?"i-ok":v==="bad"?"i-bad":"i-nt"}">${v==="ok"?"✓":v==="bad"?"✕":"–"}</i><span>${esc(tt("ck",k,L))} — <span class="muted">${esc(v==="ok"?tl("works"):v==="bad"?tl("notWorking"):tl("notTested"))}</span></span></li>`}).join("");
+  const dmg=(Array.isArray(d.d)?d.d:[]).filter(x=>DAMAGE.includes(x)).map(x=>tt("dm",x,L)).concat(d.dn?[String(d.dn)]:[]);
+  const photos=(Array.isArray(d.ph)?d.ph:[]).map(safeImg).filter(Boolean);
+  const apprBlocks=pend.map(x=>`<div class="card approve"><h2 style="color:var(--warn)">${tl("cApproveTitle")}</h2><div>${tl("cApproveText")}</div>
+     <div class="what">${esc(x.desc)}</div><div class="money">${money(x.price,L)}</div>
+     <p class="small muted" style="margin:4px 0 12px">${esc(tl("cNewTotal",{sum:money(agreed+x.price,L)}))}</p>
+     <div class="grid2"><button class="btn wa" data-dec="A" data-id="${esc(x.id)}">✓ ${tl("cAgree")}</button><button class="btn danger" data-dec="D" data-id="${esc(x.id)}">✕ ${tl("cDisagree")}</button></div>
+     <p class="small" id="r-${esc(x.id)}" style="margin:10px 0 0"></p></div>`).join("");
+  $("#app").innerHTML=`
+   <div class="chead"><div class="langs">${["ru","kk","en"].map(l=>`<button class="${l===L?"on":""}" data-lang="${l}">${l==="kk"?"ҚАЗ":l.toUpperCase()}</button>`).join("")}</div>
+     <div class="shop">${esc(tl("cFrom",{shop:d.n||""}))}</div><div class="ttl">${tl("cTitle")} ${esc(d.i)}</div>
+     <div class="meta">${esc(d.m||"")} · ${esc(tl("cReceived",{date:fdate(d.t,L)}))}</div></div>
+   <main>
+   ${apprBlocks}
+   <div class="card"><h2>${esc(tl("status"))}</h2><ul class="steps">${steps}</ul></div>
+   <div class="card"><h2>${esc(tl("price"))}</h2>
+     <div class="row"><span class="muted">${tl("cPrelim")}</span><b style="flex:none">${money(d.p,L)}</b></div>
+     ${d.pn?`<p class="small muted" style="margin:2px 0 0">${esc(tl("prelimNote"))}</p>`:""}
+     ${Number(d.df)>0?`<div class="row small" style="margin-top:6px"><span class="muted">${esc(noCur(tl("diagFee")))}</span><b style="flex:none">${money(d.df,L)}</b></div>`:""}
+     ${items.filter(x=>x.state!=="pending").map(x=>`<div class="row" style="margin-top:8px"><span>${esc(x.desc)} <span class="badge ${x.state==="approved"?"b-ok":"b-bad"}">${esc(x.state==="approved"?tl("approved"):tl("declined"))}</span></span><b style="flex:none">${money(x.price,L)}</b></div>`).join("")}
+     ${items.some(x=>x.state==="approved")?`<div class="total"><span>${tl("cAgreed")}</span><span>${money(agreed,L)}</span></div>`:""}
+   </div>
+   <div class="card"><h2>${tl("photos")}</h2>${photos.length?`<div class="cphotos">${photos.map(p=>`<img src="${p}" alt="" data-zoom>`).join("")}</div>`:`<p class="muted">${tl("cNoPhotosHere")}</p>`}</div>
+   <div class="card"><h2>${tl("cCondition")}</h2>
+     <dl class="kv" style="margin-bottom:8px"><dt>${tl("cDevice")}</dt><dd>${esc(d.m||"–")}</dd><dt>${tl("cProblem")}</dt><dd>${esc(d.f||"–")}</dd></dl>
+     <ul class="clist">${ck}</ul>
+     <p style="margin:10px 0 0"><b>${tl("cDamage")}:</b> ${esc(dmg.join(", ")||tl("cNoDamage"))}</p></div>
+   <p class="note">🔒 ${tl("cKeep")}<br><span class="small muted">${esc(tl("cAsOf",{date:fdate(d.u,L)}))}</span></p>
+   </main>${signature()}`;
+  document.documentElement.lang=L;window.scrollTo(0,0);
+  $("#app").onclick=e=>{
+    const lb=e.target.closest("[data-lang]");if(lb){VIEW.cLang=lb.dataset.lang;renderCustomer(payload);return}
+    const z=e.target.closest("[data-zoom]");if(z){zoom(z.src);return}
+    const b=e.target.closest("[data-dec]");if(!b)return;
+    const x=items.find(i=>i.id===b.dataset.id);if(!x)return;const dec=b.dataset.dec;
+    const code=approvalCode(d.i,x,dec);
+    const text=tl(dec==="A"?"replyAgree":"replyDecline",{id:d.i,desc:x.desc,price:money(x.price,L),code});
+    const r=$("#r-"+CSS.escape(x.id));if(r)r.innerHTML=`<b>${esc(tl("cYourCode",{c:code}))}</b><br>${esc(tl("cSent"))}`;
+    const w=String(d.w||"").replace(/\D/g,"");
+    window.open((w?`https://wa.me/${w}`:"https://wa.me/")+"?text="+encodeURIComponent(text),"_blank");
+  };
+}
+
+route();
+</script>
+</body>
+</html>
