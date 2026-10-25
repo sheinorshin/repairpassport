@@ -145,21 +145,22 @@ footer.sig .made{letter-spacing:.3px}
 footer.sig .hand{display:block;font-family:"Hurricane",cursive;font-size:38px;line-height:1.1;color:var(--ink);margin:2px 0}
 footer.sig a{color:var(--muted)}
 /* print */
-#print{display:none}
+#print{display:none;color:#000;background:#fff;font:13pt/1.35 Arial,Helvetica,sans-serif}
+#print h1{font-size:24pt;margin:0}
+#print .ph{width:auto;height:auto;background:none;border-radius:0}
+#print table{width:100%;border-collapse:collapse;margin:6pt 0}
+#print td{border:1px solid #888;padding:3pt 5pt;vertical-align:top}
+#print .two{display:flex;gap:14pt;align-items:flex-start}
+#print .pphotos img{width:36mm;height:36mm;object-fit:cover;border:1px solid #888;margin-right:3mm}
+#print .sign{display:flex;gap:20mm;margin-top:16pt}
+#print .sign div{flex:1;border-top:1px solid #000;padding-top:3pt;font-size:12pt}
+#print .qr svg{width:44mm;height:44mm}
+#print.measure{display:block;position:absolute;left:-10000px;top:0;width:182mm;visibility:hidden}
 @media print{
   @page{size:A4;margin:14mm}
   body{background:#fff}
   .wrap,.toast,.sheet,.viewer{display:none!important}
-  #print{display:block;color:#000;font:13pt/1.35 Arial,Helvetica,sans-serif}
-  #print h1{font-size:24pt;margin:0}
-  #print .ph{width:auto;height:auto;background:none;border-radius:0}
-  #print table{width:100%;border-collapse:collapse;margin:6pt 0}
-  #print td{border:1px solid #888;padding:3pt 5pt;vertical-align:top}
-  #print .two{display:flex;gap:14pt;align-items:flex-start}
-  #print .pphotos img{width:36mm;height:36mm;object-fit:cover;border:1px solid #888;margin-right:3mm}
-  #print .sign{display:flex;gap:20mm;margin-top:16pt}
-  #print .sign div{flex:1;border-top:1px solid #000;padding-top:3pt;font-size:12pt}
-  #print .qr svg{width:44mm;height:44mm}
+  #print{display:block}
 }
 </style>
 </head>
@@ -596,7 +597,15 @@ function printCard(c,shortLink){
    <p style="margin-top:10pt">${t("pAgree")}</p>
    <div class="sign"><div>${t("pSignC")}</div><div>${t("pSignT")}</div></div>
    <p style="font-size:10pt;color:#555;margin-top:12pt">RepairPassport · ${t("cKeep")}</p>`;
+  fitPrint();
   setTimeout(()=>window.print(),60);
+}
+/* keep the printed card on one A4 page: measure it at print width and scale it down only if it is too tall */
+function fitPrint(){
+  const pr=$("#print");pr.style.zoom="";pr.classList.add("measure");const h=pr.offsetHeight;pr.classList.remove("measure");
+  const max=264*96/25.4; /* A4 height minus 14 mm margins and 5 mm to spare, in CSS px */
+  if(h>max)pr.style.zoom=(max/h).toFixed(3);
+  return h;
 }
 
 /* ===================== settings + export ===================== */
