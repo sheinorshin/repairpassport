@@ -150,13 +150,13 @@ footer.sig a{color:var(--muted)}
   @page{size:A4;margin:14mm}
   body{background:#fff}
   .wrap,.toast,.sheet,.viewer{display:none!important}
-  #print{display:block;color:#000;font:15pt/1.4 Arial,Helvetica,sans-serif}
+  #print{display:block;color:#000;font:13pt/1.35 Arial,Helvetica,sans-serif}
   #print h1{font-size:24pt;margin:0}
   #print .ph{width:auto;height:auto;background:none;border-radius:0}
   #print table{width:100%;border-collapse:collapse;margin:6pt 0}
-  #print td{border:1px solid #888;padding:4pt 6pt;vertical-align:top}
+  #print td{border:1px solid #888;padding:3pt 5pt;vertical-align:top}
   #print .two{display:flex;gap:14pt;align-items:flex-start}
-  #print .pphotos img{width:42mm;height:42mm;object-fit:cover;border:1px solid #888;margin-right:3mm}
+  #print .pphotos img{width:36mm;height:36mm;object-fit:cover;border:1px solid #888;margin-right:3mm}
   #print .sign{display:flex;gap:20mm;margin-top:16pt}
   #print .sign div{flex:1;border-top:1px solid #000;padding-top:3pt;font-size:12pt}
   #print .qr svg{width:44mm;height:44mm}
@@ -579,7 +579,8 @@ function copyText(s){
 function zoom(src){const v=document.createElement("div");v.className="viewer";v.innerHTML=`<img src="${safeImg(src)}" alt="">`;v.onclick=()=>v.remove();document.body.appendChild(v)}
 function qrSvg(text){try{const q=qrcode(0,"L");q.addData(text,"Byte");q.make();return q.createSvgTag({cellSize:3,margin:2,scalable:true})}catch(e){return ""}}
 function printCard(c,shortLink){
-  const ck=CHECKS.map(k=>{const v=c.checks[k]||"nt";return `<tr><td>${esc(tt("ck",k))}</td><td><b>${v==="ok"?"✓ "+t("works"):v==="bad"?"✕ "+t("notWorking"):"– "+t("notTested")}</b></td></tr>`}).join("");
+  const cell=k=>{const v=c.checks[k]||"nt";return `<td>${esc(tt("ck",k))}</td><td><b>${v==="ok"?"✓ "+t("works"):v==="bad"?"✕ "+t("notWorking"):"– "+t("notTested")}</b></td>`};
+  let ck="";for(let i=0;i<CHECKS.length;i+=2)ck+=`<tr>${cell(CHECKS[i])}${CHECKS[i+1]?cell(CHECKS[i+1]):"<td></td><td></td>"}</tr>`;
   const items=c.items.filter(x=>x.state!=="pending").map(x=>`<tr><td>${esc(x.desc)}</td><td>${money(x.price)}</td><td>${esc(x.state==="approved"?t("approved"):t("declined"))}</td></tr>`).join("");
   $("#print").innerHTML=`
    <div class="two"><div style="flex:1"><div style="font-size:12pt">${esc(S.shopName)}${S.shopPhone?" · "+esc(S.shopPhone):""}</div><h1>${t("cTitle")} ${esc(c.id)}</h1>
